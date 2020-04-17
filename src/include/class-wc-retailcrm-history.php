@@ -221,8 +221,7 @@ if ( ! class_exists( 'WC_Retailcrm_History' ) ) :
                             $this->update_total($wc_order);
                         }
                     } catch (Exception $exception) {
-                        $logger = new WC_Logger();
-                        $logger->add('retailcrm',
+                        WC_Retailcrm_Logger::add('retailcrm',
                             sprintf("[%s] - %s", $exception->getMessage(),
                                 'Exception in file - ' . $exception->getFile() . ' on line ' . $exception->getLine())
                         );
@@ -551,7 +550,7 @@ if ( ! class_exists( 'WC_Retailcrm_History' ) ) :
                 'city'       => isset($order['customer']['address']['city']) ? $order['customer']['address']['city'] : '',
                 'state'      => isset($order['customer']['address']['region']) ? $order['customer']['address']['region'] : '',
                 'postcode'   => isset($order['customer']['address']['index']) ? $order['customer']['address']['index'] : '',
-                'country'    => $order['customer']['address']['countryIso']
+                'country'    => isset($order['customer']['address']) ? $order['customer']['address']['countryIso'] : ''
             );
 
             if ($this->retailcrm_settings['api_version'] == 'v5') {
@@ -603,7 +602,8 @@ if ( ! class_exists( 'WC_Retailcrm_History' ) ) :
                     }
 
                     if (!empty($arItemsOld)) {
-                        $result = end(array_diff($arItemsNew, $arItemsOld));
+                        $diff = array_diff($arItemsNew, $arItemsOld);
+                        $result = end($diff);
                     } else {
                         $result = end($arItemsNew);
                     }
@@ -691,7 +691,7 @@ if ( ! class_exists( 'WC_Retailcrm_History' ) ) :
                     )
                 );
 
-                if ($item['externalIds']) {
+                if (isset($item['externalIds']) && $item['externalIds']) {
                     $order_items[$id]['externalIds'] = $item['externalIds'];
                     $order_items[$id]['externalIds'][] = $externalIds;
                 } else {

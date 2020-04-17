@@ -54,15 +54,19 @@ if (!class_exists('WC_Retailcrm_Customers')) :
                 return null;
             }
 
-            $users = get_users(array('include' => $ids));
             $data_customers = array();
+            $customersResult = WC_Retailcrm_Customers_Repository::getUsersCustomers(
+                $ids,
+                WC_Retailcrm_Customers_Repository::CUSTOMER_ROLE
+            );
 
-            foreach ($users as $user) {
-                if (!\in_array(self::CUSTOMER_ROLE, $user->roles)) {
-                    continue;
-                }
+            foreach ($customersResult->getNotFound() as $id => $exception) {
+                WC_Retailcrm_Logger::error(sprintf('Error while trying to find customer id=%d', $id));
+                WC_Retailcrm_Logger::error($exception->getMessage());
+                WC_Retailcrm_Logger::error($exception->getTraceAsString());
+            }
 
-                $customer = $this->wcCustomerGet($user->ID);
+            foreach ($customersResult->getCustomers() as $customer) {
                 $this->processCustomer($customer);
                 $data_customers[] = $this->customer;
             }
